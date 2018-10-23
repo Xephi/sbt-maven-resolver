@@ -3,23 +3,13 @@ package mavenint
 
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import org.apache.ivy.core.settings.IvySettings
-import org.eclipse.aether.artifact.{ DefaultArtifact => AetherArtifact }
-import org.eclipse.aether.installation.{ InstallRequest => AetherInstallRequest }
-import org.eclipse.aether.metadata.{ DefaultMetadata, Metadata }
-import org.eclipse.aether.resolution.{
-  ArtifactDescriptorRequest => AetherDescriptorRequest,
-  ArtifactRequest => AetherArtifactRequest,
-  MetadataRequest => AetherMetadataRequest,
-  VersionRequest => AetherVersionRequest,
-  VersionRangeRequest => AetherVersionRangeRequest
-}
-
-import sbt.internal.librarymanagement.ivyint.CustomMavenResolver
-import sbt.librarymanagement.MavenCache
+import org.eclipse.aether.artifact.{DefaultArtifact => AetherArtifact}
+import org.eclipse.aether.installation.{InstallRequest => AetherInstallRequest}
+import org.eclipse.aether.metadata.{DefaultMetadata, Metadata}
+import org.eclipse.aether.resolution.{ArtifactDescriptorRequest => AetherDescriptorRequest, ArtifactRequest => AetherArtifactRequest, MetadataRequest => AetherMetadataRequest, VersionRangeRequest => AetherVersionRangeRequest, VersionRequest => AetherVersionRequest}
 
 import scala.collection.JavaConverters._
-
-import sbt.io.IO
+import sbt.internal.librarymanagement.ivyint.CustomMavenResolver
 
 /**
  * A resolver instance which can resolve from a maven CACHE.
@@ -30,7 +20,7 @@ class MavenCacheRepositoryResolver(val repo: MavenCache, settings: IvySettings)
     extends MavenRepositoryResolver(settings) with CustomMavenResolver {
   setName(repo.name)
   protected val system = MavenRepositorySystemFactory.newRepositorySystemImpl
-  IO.createDirectory(repo.rootFile)
+  sbt.io.IO.createDirectory(repo.rootFile)
   protected val session = MavenRepositorySystemFactory.newSessionImpl(system, repo.rootFile)
   protected def setRepository(request: AetherMetadataRequest): AetherMetadataRequest = request
   protected def addRepositories(request: AetherDescriptorRequest): AetherDescriptorRequest = request
@@ -57,7 +47,7 @@ class MavenCacheRepositoryResolver(val repo: MavenCache, settings: IvySettings)
       catch {
         case e: org.eclipse.aether.resolution.ArtifactResolutionException => None
       }
-    try metadataResultOpt match {
+    metadataResultOpt match {
       case Some(md) if md.isResolved =>
         import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader
         import org.codehaus.plexus.util.ReaderFactory
